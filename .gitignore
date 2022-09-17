@@ -1,3 +1,7 @@
+# MacOS specific
+**/.DS_Store
+
+# fuzzied
 **/env.conf
 **/fuzz-output.json
 **/crytic-export
