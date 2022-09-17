@@ -1,0 +1,48 @@
+/src/contracts/harness.sol
+    | /// @notice there are two ways to run this contract
+    | /// @dev first way to run: $ echidna-test solution.sol --test-mode assertion --contract Token
+    | /// @dev second way to run: $ echidna-test solution.sol --config config.yaml --contract Token
+    | contract Ownership {
+    |     address owner = msg.sender;
+    | 
+*   |     function Owner() public {
+*   |         owner = msg.sender;
+    |     }
+    | 
+    |     modifier isOwner() {
+*r  |         require(owner == msg.sender);
+    |         _;
+    |     }
+    | }
+    | 
+    | contract Pausable is Ownership {
+    |     bool is_paused;
+    |     modifier ifNotPaused() {
+*er |         require(!is_paused);
+*   |         _;
+    |     }
+    | 
+*r  |     function paused() public isOwner {
+*   |         is_paused = true;
+    |     }
+    | 
+*r  |     function resume() public isOwner {
+*   |         is_paused = false;
+    |     }
+    | }
+*er | 
+    | contract Harness is Pausable {
+*   |     mapping(address => uint256) public balances;
+    | 
+*er |     function transfer(address to, uint256 value) public ifNotPaused {
+*e  |         uint256 initial_balance_from = balances[msg.sender];
+*e  |         uint256 initial_balance_to = balances[to];
+    | 
+*e  |         balances[msg.sender] -= value;
+*e  |         balances[to] += value;
+    | 
+*e  |         assert(balances[msg.sender] <= initial_balance_from);
+*   |         assert(balances[to] >= initial_balance_to);
+    |     }
+    | }
+    | 

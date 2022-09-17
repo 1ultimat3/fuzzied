@@ -70,7 +70,7 @@ class FuzzScheduler:
         current_projects = list(self.list_fuzzing_projects())
         new_projects = list(set(current_projects) - set(self.projects))
         self.logger.debug("projects: " + ", ".join(s.path for s in scheduler.projects))
-        return new_projects
+        return new_projects, current_projects
 
     def commit_new_job(self, project):
         """
@@ -98,12 +98,12 @@ if __name__ == '__main__':
             queue_size = scheduler.get_queue_size()
             if queue_size < scheduler.throttle_queue_size:
                 # fill queue with project, prefer new projects
-                new_projects = scheduler.get_new_projects()
+                new_projects, curr_projects = scheduler.get_new_projects()
                 if new_projects:
                     target_projects = new_projects
                     project = random.choice(target_projects)
                 else:
-                    target_projects = scheduler.projects
+                    target_projects = scheduler.projects = curr_projects
                     project = target_projects[next_index]
                     next_index = (next_index + 1) % len(target_projects)
 

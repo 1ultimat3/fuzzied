@@ -1,0 +1,88 @@
+/src/contracts/harness.sol
+    | import "mintable.sol";
+    | 
+*r  | /// @dev to run: $ echidna-test solution.sol --contract TestToken
+    | contract Harness is MintableToken {
+    |     address echidna_caller = msg.sender;
+    | 
+    |     // update the constructor
+    |     constructor() public MintableToken(10000) {
+    |         owner = echidna_caller;
+    |     }
+    | 
+    |     // add the property
+    |     function echidna_test_balance() public view returns (bool) {
+    |         return balances[msg.sender] <= 10000;
+    |     }
+    | }
+    | 
+
+/src/contracts/mintable.sol
+    | import "token.sol";
+    | 
+    | contract MintableToken is Token{
+    | 
+    |     int totalMinted;
+    |     int totalMintable;
+    | 
+    |     constructor(int _totalMintable) public {
+    |         totalMintable = _totalMintable;
+    |     }
+    | 
+*r  |     function mint(uint value) isOwner() public {
+    | 
+*r  |         require(int(value) + totalMinted < totalMintable);
+*   |         totalMinted += int(value);
+    | 
+*   |         balances[msg.sender] += value;
+    | 
+    |     }
+    | 
+    | }
+    | 
+
+/src/contracts/token.sol
+    | 
+    | 
+    | contract Ownership{
+    | 
+    |     address owner = msg.sender;
+    | 
+*   |     function Owner() public{
+*   |         owner = msg.sender;
+    |     }
+    | 
+    |     modifier isOwner(){
+*r  |         require(owner == msg.sender);
+    |         _;
+    |     }
+    | }
+    | 
+    | contract Pausable is Ownership{
+    | 
+    |     bool is_paused;
+    | 
+    |     modifier ifNotPaused(){
+*r  |         require(!is_paused);
+    |         _;
+    |     }
+    | 
+*r  |     function paused() isOwner public{
+*   |         is_paused = true;
+    |     }
+    | 
+*r  |     function resume() isOwner public{
+*   |         is_paused = false;
+    |     }
+    | 
+    | }
+    | 
+    | contract Token is Pausable{
+    |     mapping(address => uint) public balances;
+    | 
+*r  |     function transfer(address to, uint value) ifNotPaused public{
+*   |         balances[msg.sender] -= value;
+*   |         balances[to] += value;
+    |     }
+    | }
+    | 
