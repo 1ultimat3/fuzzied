@@ -88,7 +88,7 @@ class FuzzBot:
 
                 cmd = ("docker run --rm -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
                       " -c \"chmod a+x /src/{build_script_loc} && /src/{build_script_loc} &&" +\
-                      " cd /src/contracts/ && echidna-test {harness} --corpus-dir /src/corpus/ --seed {seed} --config /src/{config_file} --format text > /src/fuzz-output.txt\"").format(**locals())
+                      " cd /src/contracts/ && echidna-test {harness} --corpus-dir /src/corpus/ --seed {seed} --contract Harness --config /src/{config_file} --format text > /src/fuzz-output.txt\"").format(**locals())
 
                 self.logger.info("running job: {}".format(cmd))
                 with open("/tmp/output.log", "a") as output:
