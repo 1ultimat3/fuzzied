@@ -46,6 +46,19 @@ resource "aws_instance" "fuzzied_scheduler" {
   }
 }
 
+resource "aws_spot_instance_request" "fuzzied_bot" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.large"
+  key_name      = "fuzzied"
+  spot_price    = 0.03
+  spot_type     = "one-time"
+  vpc_security_group_ids = [aws_security_group.main.id]
+
+  tags = {
+    Name = "fuzzied_scheduler"
+  }
+}
+
 resource "aws_security_group" "main" {
   egress = [
     {

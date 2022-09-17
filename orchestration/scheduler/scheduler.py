@@ -121,4 +121,4 @@ if __name__ == '__main__':
 
         finally:
             #temp safeguard to limit requests per cycle
-            time.sleep(5)
+            time.sleep(1)
