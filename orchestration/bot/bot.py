@@ -129,7 +129,7 @@ class FuzzBot:
                             #https://pygithub.readthedocs.io/en/latest/github.html?highlight=search#github.MainClass.Github.search_issues
 
                             crash_label = self.repo.get_label("crash")
-                            self.logger.log("creating issue: {}".format(self.repo.create_issue(title=title, \
+                            self.logger.info("creating issue: {}".format(self.repo.create_issue(title=title, \
                                 body="seed: {}\n\n{}".format(seed, issues_body), \
                                 assignees=assignees,
                                 labels=[crash_label])))
