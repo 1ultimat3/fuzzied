@@ -69,8 +69,7 @@ class FuzzScheduler:
         """
         current_projects = list(self.list_fuzzing_projects())
         new_projects = list(set(current_projects) - set(self.projects))
-        self.logger.info("projects: " + ", ".join(s.path for s in scheduler.projects))
-        self.projects.extend(new_projects)
+        self.logger.debug("projects: " + ", ".join(s.path for s in scheduler.projects))
         return new_projects
 
     def commit_new_job(self, project):
@@ -108,7 +107,9 @@ if __name__ == '__main__':
                 scheduler.logger.info("Add project to fuzz queue: " + project.path)
                 response = scheduler.commit_new_job(project)
                 scheduler.logger.info("Job commited ({} {})".format(response["ResponseMetadata"]["HTTPStatusCode"], response["MessageId"]))
-
+                if new_projects:
+                    #only after new project has been processed add it to the updated state
+                    scheduler.projects.append(project)
             else:
                 scheduler.logger.info("Waiting for fuzz queue capacity")
 
