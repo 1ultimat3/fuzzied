@@ -67,7 +67,7 @@ class FuzzScheduler:
         """
         current_projects = list(self.list_fuzzing_projects())
         new_projects = list(set(current_projects) - set(self.projects))
-        self.logger.info("projects: " + ", ".join(scheduler.projects))
+        self.logger.info("projects: " + ", ".join(s.path for s in scheduler.projects))
         self.projects.extend(new_projects)
         return new_projects
 
@@ -88,7 +88,7 @@ class FuzzScheduler:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level="INFO")
+    logging.basicConfig(level="INFO", format='%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',)
     scheduler = FuzzScheduler()
 
     while True:
