@@ -1,6 +1,7 @@
 import configparser
 import random
 import json
+import time
 import subprocess
 
 import boto3
@@ -66,43 +67,44 @@ class FuzzBot:
                 self.client.delete_message(QueueUrl=self.config['DEFAULT']['aws_sqs_url'], ReceiptHandle=message['ReceiptHandle'])
                 self.logger.info('fuzzing job has been taken for {}'.format(project))
 
-                #TODO pull repo using git before doing anything
-
-                #TODO ensure configuration for fuzzing is available
+                #retrieve configuration for project
                 fuzz_output = self._fuzz_output_location(project)
                 targets_loc = self._targets_location()
                 project_loc = self._project_location(project)
                 build_script_loc = "compile.sh"
-                config_file = "config"
+                config_file = "config.yaml"
                 harness = "harness.sol"
+
+                #pull repo using git before doing anything
+                cmd = "cd {} && git pull -q".format(targets_loc)
+                self.logger.info("updating local git repo: {}".format(cmd))
+
+                #generate seed, fuzz, and process output
                 seed = self._generate_seed()
 
-                #fuzz and process output
-                cmd = "docker run -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
-                      "-c \"chmod a+x ./{build_script_loc} && ./{build_script_loc} &&" +\
-                      "cd /src/contracts/ && echidna-test {harness} --seed {seed} --config {config} --format json > {fuzz_output}\"".format(locals())
-                print(cmd)
-                """
+                cmd = ("docker run -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
+                      " -c \"chmod a+x /src/{build_script_loc} && /src/{build_script_loc} &&" +\
+                      " cd /src/contracts/ && echidna-test {harness} --seed {seed} --config /src/{config_file} --format json > /src/fuzz-output.json\"").format(**locals())
+
                 self.logger.info("running job: {}".format(cmd))
                 with open("/tmp/output.log", "a") as output:
                     subprocess.call(cmd, shell=True, stdout=output, stderr=output)
 
                 self.logger.info("fuzzing job has finished")
 
-
-                print('checking if issue has to been reported')
+                self.logger.info('checking if issue has to be reported')
                 with open(fuzz_output) as f:
                     fuzz_results = json.load(f)
                     tests = fuzz_results['tests']
                     seed = fuzz_results['seed']
                     if tests:
                         print('report crashs to github repo')
-                        issues_body = ""Crashs have been identified:
+                        issues_body = """Crashs have been identified:
                         {}
-                        "".format(json.dumps(tests))
+                        """.format(json.dumps(tests))
                         print(repo.create_issue(title="project/dummyproject {}".format(seed), body=issues_body))
-                """
-                #require new poll to get a message
+
+                #require new poll to get a fresh message
                 return
         else:
             print('No fuzzing jobs scheduled')
@@ -110,4 +112,7 @@ class FuzzBot:
 if __name__ == '__main__':
     logging.basicConfig(level="INFO", format='%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',)
     bot = FuzzBot()
-    bot.poll_queue()
+    while True:
+        bot.poll_queue()
+        time.sleep(1)
+        return

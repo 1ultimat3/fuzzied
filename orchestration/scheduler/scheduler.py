@@ -6,6 +6,7 @@ import boto3
 from botocore.config import Config
 import botocore
 import time
+import uuid
 
 from github import Github
 
@@ -25,7 +26,7 @@ class FuzzScheduler:
         self.config = configparser.ConfigParser()
         section = self.config.read(config_filename)
         self.logger = logging.getLogger('fuzzied.FuzzScheduler')
-        
+
         #get the service resource
         my_config = Config(
             region_name=self.config['DEFAULT']['aws_sqs_region'],
@@ -78,7 +79,8 @@ class FuzzScheduler:
         """
         return self.client.send_message(MessageBody=project.path, \
                             MessageGroupId=self.config['DEFAULT']['aws_message_group_id'], \
-                            QueueUrl=self.config['DEFAULT']['aws_sqs_url'])
+                            QueueUrl=self.config['DEFAULT']['aws_sqs_url'], \
+                            MessageDeduplicationId=str(uuid.UUID(int=random.getrandbits(128))))
 
     def get_queue_size(self):
         attributes = self.client.get_queue_attributes(QueueUrl=self.config['DEFAULT']['aws_sqs_url'], \

@@ -10,5 +10,5 @@ resource "aws_s3_bucket" "fuzzing-data" {
 resource "aws_sqs_queue" "fuzzing-job-queue" {
   name                        = "${var.fuzzing_job_queue_name}"
   fifo_queue                  = true
-  content_based_deduplication = true
+  content_based_deduplication = false
 }
