@@ -75,7 +75,7 @@ resource "aws_security_group" "main" {
   ]
  ingress                = [
    {
-     cidr_blocks      = [ "109.40.240.72/32", ]
+     cidr_blocks      = [ "185.199.104.14/32", ]
      description      = ""
      from_port        = 22
      ipv6_cidr_blocks = []

@@ -3,6 +3,7 @@ fuzzing_engines:
 homepage: https://github.com/Uniswap/v3-core
 language: solidity
 assignees:
+  - haydenadams
   - 1ultimat3
 contacts:
-- adminuser@project.com
+- security@uniswap.org
