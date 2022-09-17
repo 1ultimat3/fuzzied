@@ -47,7 +47,7 @@ class FuzzBot:
         self.repo = g.get_repo(self.config['DEFAULT']['github_repo'])
 
     def _fuzz_output_location(self, project):
-        return "{}/fuzz-output.json".format(self._project_location(project))
+        return "{}/fuzz-output.txt".format(self._project_location(project))
 
     def _project_location(self, project):
         return "{}/{}".format(self.repo_path, project)
@@ -82,9 +82,9 @@ class FuzzBot:
                 #generate seed, fuzz, and process output
                 seed = self._generate_seed()
 
-                cmd = ("docker run -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
+                cmd = ("docker run --rm -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
                       " -c \"chmod a+x /src/{build_script_loc} && /src/{build_script_loc} &&" +\
-                      " cd /src/contracts/ && echidna-test {harness} --seed {seed} --config /src/{config_file} --format json > /src/fuzz-output.json\"").format(**locals())
+                      " cd /src/contracts/ && echidna-test {harness} --seed {seed} --config /src/{config_file} --format text > /src/fuzz-output.txt\"").format(**locals())
 
                 self.logger.info("running job: {}".format(cmd))
                 with open("/tmp/output.log", "a") as output:
@@ -94,15 +94,22 @@ class FuzzBot:
 
                 self.logger.info('checking if issue has to be reported')
                 with open(fuzz_output) as f:
-                    fuzz_results = json.load(f)
-                    tests = fuzz_results['tests']
-                    seed = fuzz_results['seed']
-                    if tests:
-                        print('report crashs to github repo')
-                        issues_body = """Crashs have been identified:
-                        {}
-                        """.format(json.dumps(tests))
-                        print(repo.create_issue(title="project/dummyproject {}".format(seed), body=issues_body))
+                    fuzz_results = f.read().rstrip()
+                    failed_tests = [failed.split(":")[0] for failed in fuzz_results.splitlines() if "failed!💥" in failed]
+                    if failed_tests:
+                        self.logger.info('report {} crashs to github repo'.format(len(failed_tests)))
+                        issues_body = fuzz_results
+                        if len(failed_tests) > 1:
+                            title = "{}: {} crashes".format(project, len(failed_tests))
+                        else:
+                            title = "{}: {}".format(project, failed_tests[0])
+                        #TODO add assignee based on spec.yaml
+                        #TODO dedup issues based on title - if same title, don't create issue
+                        #https://pygithub.readthedocs.io/en/latest/github.html?highlight=search#github.MainClass.Github.search_issues
+                        crash_label = self.repo.get_label("crash")
+                        print(self.repo.create_issue(title=title, \
+                            body="seed: {}\n\n{}".format(seed, issues_body), \
+                            labels=[crash_label]))
 
                 #require new poll to get a fresh message
                 return
@@ -115,4 +122,4 @@ if __name__ == '__main__':
     while True:
         bot.poll_queue()
         time.sleep(1)
-        return
+        break
