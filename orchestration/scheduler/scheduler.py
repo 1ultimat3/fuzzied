@@ -92,7 +92,7 @@ class FuzzScheduler:
 if __name__ == '__main__':
     logging.basicConfig(level="INFO", format='%(asctime)s %(levelname)s %(module)s - %(funcName)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S',)
     scheduler = FuzzScheduler()
-
+    next_index = 0
     while True:
         try:
             queue_size = scheduler.get_queue_size()
@@ -101,9 +101,12 @@ if __name__ == '__main__':
                 new_projects = scheduler.get_new_projects()
                 if new_projects:
                     target_projects = new_projects
+                    project = random.choice(target_projects)
                 else:
                     target_projects = scheduler.projects
-                project = random.choice(target_projects)
+                    project = target_projects[next_index]
+                    next_index = (next_index + 1) % len(target_projects)
+
                 scheduler.logger.info("Add project to fuzz queue: " + project.path)
                 response = scheduler.commit_new_job(project)
                 scheduler.logger.info("Job commited ({} {})".format(response["ResponseMetadata"]["HTTPStatusCode"], response["MessageId"]))
