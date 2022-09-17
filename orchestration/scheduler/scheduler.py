@@ -104,8 +104,7 @@ if __name__ == '__main__':
                     target_projects = new_projects
                 else:
                     target_projects = scheduler.projects
-
-                project = random.choice(scheduler.projects)
+                project = random.choice(target_projects)
                 scheduler.logger.info("Add project to fuzz queue: " + project.path)
                 response = scheduler.commit_new_job(project)
                 scheduler.logger.info("Job commited ({} {})".format(response["ResponseMetadata"]["HTTPStatusCode"], response["MessageId"]))
