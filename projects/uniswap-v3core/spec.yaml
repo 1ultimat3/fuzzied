@@ -1,0 +1,8 @@
+fuzzing_engines:
+- echidna
+homepage: https://github.com/Uniswap/v3-core
+language: solidity
+assignees:
+  - 1ultimat3
+contacts:
+- adminuser@project.com
