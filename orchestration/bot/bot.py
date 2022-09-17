@@ -3,9 +3,12 @@ import random
 import json
 import time
 import subprocess
+import hashlib
+import yaml
 
 import boto3
 from botocore.config import Config
+import urllib.parse
 
 from github import Github
 import logging
@@ -45,6 +48,7 @@ class FuzzBot:
         # using an access token
         g = Github(self.config['DEFAULT']['github_access_token'])
         self.repo = g.get_repo(self.config['DEFAULT']['github_repo'])
+        self.github = g
 
     def _fuzz_output_location(self, project):
         return "{}/fuzz-output.txt".format(self._project_location(project))
@@ -92,24 +96,43 @@ class FuzzBot:
 
                 self.logger.info("fuzzing job has finished")
 
-                self.logger.info('checking if issue has to be reported')
+                self.logger.info('checking if issue identified')
                 with open(fuzz_output) as f:
                     fuzz_results = f.read().rstrip()
                     failed_tests = [failed.split(":")[0] for failed in fuzz_results.splitlines() if "failed!💥" in failed]
                     if failed_tests:
-                        self.logger.info('report {} crashs to github repo'.format(len(failed_tests)))
+                        self.logger.info('evaluate {} crashs to be reported in github repo'.format(len(failed_tests)))
                         issues_body = fuzz_results
                         if len(failed_tests) > 1:
-                            title = "{}: {} crashes".format(project, len(failed_tests))
+                            hash = hashlib.md5(("+".join(failed_tests)).encode('utf-8')).hexdigest()
+                            title = "{}: {} crashes {}".format(project, len(failed_tests), hash[:4])
                         else:
                             title = "{}: {}".format(project, failed_tests[0])
-                        #TODO add assignee based on spec.yaml
-                        #TODO dedup issues based on title - if same title, don't create issue
-                        #https://pygithub.readthedocs.io/en/latest/github.html?highlight=search#github.MainClass.Github.search_issues
-                        crash_label = self.repo.get_label("crash")
-                        print(self.repo.create_issue(title=title, \
-                            body="seed: {}\n\n{}".format(seed, issues_body), \
-                            labels=[crash_label]))
+
+                        #add assignee based on spec.yaml
+                        with open("{}/spec.yaml".format(project_loc), 'r') as f:
+                            try:
+                                spec = yaml.safe_load(f)
+                                assignees = spec['assignees']
+                            except yaml.YAMLError as exc:
+                                self.logger.error(exc)
+                                assignees = []
+
+                        #dedup issues based on title - if same title, don't create issue
+                        issue_query = "repo:{} is:open \"{}\"".format(self.config['DEFAULT']['github_repo'], title)
+                        self.logger.info(issue_query)
+                        similar_issues = self.github.search_issues(query=issue_query)
+                        len_similar_issues = len(list(similar_issues))
+
+                        self.logger.info("similar issues open: {}".format(len_similar_issues))
+                        if len_similar_issues == 0:
+                            #https://pygithub.readthedocs.io/en/latest/github.html?highlight=search#github.MainClass.Github.search_issues
+
+                            crash_label = self.repo.get_label("crash")
+                            self.logger.log("creating issue: {}".format(self.repo.create_issue(title=title, \
+                                body="seed: {}\n\n{}".format(seed, issues_body), \
+                                assignees=assignees,
+                                labels=[crash_label])))
 
                 #require new poll to get a fresh message
                 return
