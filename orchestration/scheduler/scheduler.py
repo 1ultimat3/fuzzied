@@ -25,6 +25,7 @@ class FuzzScheduler:
         self.config = configparser.ConfigParser()
         section = self.config.read(config_filename)
         self.logger = logging.getLogger('fuzzied.FuzzScheduler')
+        
         #get the service resource
         my_config = Config(
             region_name=self.config['DEFAULT']['aws_sqs_region'],
