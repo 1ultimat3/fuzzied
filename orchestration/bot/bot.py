@@ -144,4 +144,4 @@ if __name__ == '__main__':
     bot = FuzzBot()
     while True:
         bot.poll_queue()
-        time.sleep(5)
+        time.sleep(1)
