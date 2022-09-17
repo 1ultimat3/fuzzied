@@ -1,0 +1,63 @@
+/src/contracts/harness.sol
+    | import "token.sol";
+    | 
+*r  | /// @dev to run: $ echidna-test solution.sol
+    | contract Harness is Token {
+    |     address echidna_caller = msg.sender;
+    | 
+    |     constructor() public {
+    |         balances[echidna_caller] = 10000;
+    |     }
+    | 
+    |     // add the property
+    |     function echidna_test_balance() public view returns (bool) {
+    |         return balances[echidna_caller] <= 10000;
+    |     }
+    | }
+    | 
+
+/src/contracts/token.sol
+    | 
+    | 
+    | contract Ownership{
+    | 
+    |     address owner = msg.sender;
+    | 
+*   |     function Owner() public{
+*   |         owner = msg.sender;
+    |     }
+    | 
+    |     modifier isOwner(){
+*r  |         require(owner == msg.sender);
+    |         _;
+    |     }
+    | }
+    | 
+    | contract Pausable is Ownership{
+    | 
+    |     bool is_paused;
+    | 
+    |     modifier ifNotPaused(){
+*r  |         require(!is_paused);
+    |         _;
+    |     }
+    | 
+*r  |     function paused() isOwner public{
+*   |         is_paused = true;
+    |     }
+    | 
+*r  |     function resume() isOwner public{
+*   |         is_paused = false;
+    |     }
+    | 
+    | }
+    | 
+    | contract Token is Pausable{
+*   |     mapping(address => uint) public balances;
+    | 
+*r  |     function transfer(address to, uint value) ifNotPaused public{
+*   |         balances[msg.sender] -= value;
+*   |         balances[to] += value;
+    |     }
+    | }
+    | 
