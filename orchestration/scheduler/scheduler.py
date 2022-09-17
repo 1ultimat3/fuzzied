@@ -85,7 +85,7 @@ class FuzzScheduler:
         attributes = self.client.get_queue_attributes(QueueUrl=self.config['DEFAULT']['aws_sqs_url'], \
                             AttributeNames=["ApproximateNumberOfMessages"])
         queue_size = int(attributes["Attributes"]["ApproximateNumberOfMessages"])
-        self.logger.info("Current queue size: {}".format(queue_size))
+        self.logger.debug("Current queue size: {}".format(queue_size))
         return queue_size
 
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                     #only after new project has been processed add it to the updated state
                     scheduler.projects.append(project)
             else:
-                scheduler.logger.info("Waiting for fuzz queue capacity")
+                scheduler.logger.debug("Waiting for fuzz queue capacity")
 
         except botocore.exceptions.ClientError as e:
             print(e)

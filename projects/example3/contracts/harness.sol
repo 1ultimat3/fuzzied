@@ -1,7 +1,7 @@
 import "mintable.sol";
 
 /// @dev to run: $ echidna-test solution.sol --contract TestToken
-contract TestToken is MintableToken {
+contract Harness is MintableToken {
     address echidna_caller = msg.sender;
 
     // update the constructor

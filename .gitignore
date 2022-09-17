@@ -6,6 +6,7 @@
 **/fuzz-output.json
 **/crytic-export
 **/fuzz-output.txt
+**/*.covered.*.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/terraform
 # Edit at https://www.toptal.com/developers/gitignore?templates=terraform

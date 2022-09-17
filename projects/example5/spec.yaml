@@ -1,0 +1,8 @@
+fuzzing_engines:
+- echidna
+homepage: https://github.com/crytic/building-secure-contracts/tree/master/program-analysis/echidna/exercises/exercise5
+language: solidity
+assignees:
+  - 1ultimat3
+contacts:
+- adminuser@project.com

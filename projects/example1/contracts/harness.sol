@@ -1,7 +1,7 @@
 import "token.sol";
 
 /// @dev to run: $ echidna-test solution.sol
-contract TestToken is Token {
+contract Harness is Token {
     address echidna_caller = msg.sender;
 
     constructor() public {

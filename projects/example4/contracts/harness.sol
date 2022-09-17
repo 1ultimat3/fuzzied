@@ -30,7 +30,7 @@ contract Pausable is Ownership {
     }
 }
 
-contract Token is Pausable {
+contract Harness is Pausable {
     mapping(address => uint256) public balances;
 
     function transfer(address to, uint256 value) public ifNotPaused {
