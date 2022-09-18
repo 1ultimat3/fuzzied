@@ -7,3 +7,5 @@ variable "fuzzing_data_bucket" {
 variable "fuzzing_job_queue_name" {
   default = "fuzzing-job-queue.fifo"
 }
+
+variable "admin_ip" {}
