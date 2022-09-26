@@ -24,7 +24,7 @@ class FuzzBot:
     and report issues
     """
 
-    def __init__(self, config_filename='env.conf'):
+    def __init__(self, config_filename='bot.conf'):
         #load config
         self.config = configparser.ConfigParser()
         section = self.config.read(config_filename)
