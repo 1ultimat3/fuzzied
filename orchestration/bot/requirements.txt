@@ -1,2 +1,3 @@
 PyGithub
 boto3
+pyyaml

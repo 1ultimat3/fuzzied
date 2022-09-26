@@ -80,15 +80,24 @@ class FuzzBot:
                 harness = "harness.sol"
 
                 #pull repo using git before doing anything
+                # TODO: besides pull, we need to revert github state (i.e. corpus): git reset --hard HEAD
                 cmd = "cd {} && git pull -q".format(targets_loc)
                 self.logger.info("updating local git repo: {}".format(cmd))
 
                 #generate seed, fuzz, and process output
                 seed = self._generate_seed()
 
+
+                '''
                 cmd = ("docker run --rm -it -v {project_loc}:/src ghcr.io/crytic/echidna/echidna bash" +\
                       " -c \"chmod a+x /src/{build_script_loc} && /src/{build_script_loc} &&" +\
                       " cd /src/contracts/ && echidna-test {harness} --corpus-dir /src/corpus/ --seed {seed} --contract Harness --config /src/{config_file} --format text > /src/fuzz-output.txt\"").format(**locals())
+                '''
+
+                cmd = ("cd {project_loc}/contracts &&" + \
+                        " echidna-test {harness} --corpus-dir {project_loc}/corpus/ --seed {seed} --contract Harness " + \
+                        "--config {project_loc}/{config_file} --format text > {project_loc}/fuzz-output.txt\"")\
+                        .format(**locals()))
 
                 self.logger.info("running job: {}".format(cmd))
                 with open("/tmp/output.log", "a") as output:
@@ -101,38 +110,12 @@ class FuzzBot:
                     fuzz_results = f.read().rstrip()
                     failed_tests = [failed.split(":")[0] for failed in fuzz_results.splitlines() if "failed!💥" in failed]
                     if failed_tests:
-                        self.logger.info('evaluate {} crashs to be reported in github repo'.format(len(failed_tests)))
-                        issues_body = fuzz_results
-                        if len(failed_tests) > 1:
-                            hash = hashlib.md5(("+".join(failed_tests)).encode('utf-8')).hexdigest()
-                            title = "{}: {} crashes {}".format(project, len(failed_tests), hash[:4])
-                        else:
-                            title = "{}: {}".format(project, failed_tests[0])
+                        # TODO write into replicator queue
+                        self.logger.info('crash needs to be reported')
 
-                        #add assignee based on spec.yaml
-                        with open("{}/spec.yaml".format(project_loc), 'r') as f:
-                            try:
-                                spec = yaml.safe_load(f)
-                                assignees = spec['assignees']
-                            except yaml.YAMLError as exc:
-                                self.logger.error(exc)
-                                assignees = []
 
-                        #dedup issues based on title - if same title, don't create issue
-                        issue_query = "repo:{} is:open \"{}\"".format(self.config['DEFAULT']['github_repo'], title)
-                        self.logger.info(issue_query)
-                        similar_issues = self.github.search_issues(query=issue_query)
-                        len_similar_issues = len(list(similar_issues))
-
-                        self.logger.info("similar issues open: {}".format(len_similar_issues))
-                        if len_similar_issues == 0:
-                            #https://pygithub.readthedocs.io/en/latest/github.html?highlight=search#github.MainClass.Github.search_issues
-
-                            crash_label = self.repo.get_label("crash")
-                            self.logger.info("creating issue: {}".format(self.repo.create_issue(title=title, \
-                                body="seed: {}\n\n{}".format(seed, issues_body), \
-                                assignees=assignees,
-                                labels=[crash_label])))
+                #TODO: commit and push new corpus if trusted bot (or s3 bucket etc?)
+                #..
 
                 #require new poll to get a fresh message
                 return
