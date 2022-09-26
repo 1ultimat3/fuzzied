@@ -21,7 +21,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 class FuzzBot:
     """
     FuzzBot is used to poll the message queue, conduct fuzzing jobs,
-    and report issues 
+    and report issues
     """
 
     def __init__(self, config_filename='env.conf'):
@@ -96,7 +96,7 @@ class FuzzBot:
 
                 cmd = ("cd {project_loc}/contracts &&" +\
                         " echidna-test {harness} --corpus-dir {project_loc}/corpus/ --seed {seed} --contract Harness " +\
-                        "--config {project_loc}/{config_file} --format text > {project_loc}/fuzz-output.txt\"").format(**locals()))
+                        "--config {project_loc}/{config_file} --format text > {project_loc}/fuzz-output.txt\"").format(**locals())
 
                 self.logger.info("running job: {}".format(cmd))
                 with open("/tmp/output.log", "a") as output:
