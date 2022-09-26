@@ -13,6 +13,12 @@ resource "aws_sqs_queue" "fuzzing-job-queue" {
   content_based_deduplication = false
 }
 
+resource "aws_sqs_queue" "fuzzing-report-queue" {
+  name                        = "${var.fuzzing_report_queue_name}"
+  fifo_queue                  = true
+  content_based_deduplication = true
+}
+
 resource "aws_default_vpc" "default" {
   tags = {
     Name = "Default VPC"
