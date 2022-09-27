@@ -43,6 +43,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_instance" "fuzzied_scheduler" {
   ami           = data.aws_ami.ubuntu.id
+  count         = var.fuzzied_scheduler_count
   instance_type = "t3.micro"
   key_name      = "fuzzied"
   vpc_security_group_ids = [aws_security_group.main.id]
@@ -54,6 +55,7 @@ resource "aws_instance" "fuzzied_scheduler" {
 
 resource "aws_spot_instance_request" "fuzzied_bot" {
   ami           = data.aws_ami.ubuntu.id
+  count         = var.fuzzied_bot_count
   instance_type = "t3.large"
   key_name      = "fuzzied"
   spot_price    = 0.03
